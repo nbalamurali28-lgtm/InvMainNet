@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="InventoryManagement.IL/InventoryManagement.IL.csproj" Id="8b9e5272-4df3-469d-bf8c-c8b7c4184bde" />
+  <Project Path="InventoryManagement/InventoryManagement.csproj" Id="d9d62c80-e994-4615-82fb-a7dcda75bcfc" />
+</Solution>

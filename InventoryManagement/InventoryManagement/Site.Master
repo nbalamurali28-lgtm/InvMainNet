@@ -1,0 +1,147 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Site.master.cs" Inherits="InventoryManagement.SiteMaster" %>
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head runat="server">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%: Page.Title %></title>
+
+    <!-- Load jQuery first -->
+    <script src="Scripts/jquery-3.7.0.min.js"></script>
+    <!-- Load Popper.js (required for Bootstrap dropdowns) -->
+    <script src="Scripts/popper.min.js"></script>
+    <!-- Load Bootstrap JavaScript -->
+    <script src="Scripts/bootstrap.bundle.min.js"></script>
+
+    <asp:PlaceHolder runat="server">
+        <%: Scripts.Render("~/bundles/modernizr") %>
+    </asp:PlaceHolder>
+
+    <webopt:BundleReference runat="server" Path="~/Content/css" />
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    <link href="Content/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Fallback script to check if jQuery and Bootstrap are loaded -->
+    <script>
+        if (typeof jQuery === 'undefined') {
+            console.error('jQuery is not loaded. Please check the script reference.');
+        }
+        if (typeof bootstrap === 'undefined') {
+            console.error('Bootstrap is not loaded. Please check the script reference.');
+        }
+    </script>
+
+    <script type="text/javascript">
+        function preventBack() {
+            window.history.forward();
+        }
+        setTimeout("preventBack()", 0);
+        window.onunload = function () { null };
+    </script>
+</head>
+<body>
+    <form runat="server">
+        <asp:ScriptManager runat="server">
+            <Scripts>
+                <%--To learn more about bundling scripts in ScriptManager see https://go.microsoft.com/fwlink/?LinkID=301884 --%>
+                <%--Framework Scripts--%>
+                <asp:ScriptReference Name="MsAjaxBundle" />
+                <asp:ScriptReference Name="jquery" />
+                <asp:ScriptReference Name="WebForms.js" Assembly="System.Web" Path="~/Scripts/WebForms/WebForms.js" />
+                <asp:ScriptReference Name="WebUIValidation.js" Assembly="System.Web" Path="~/Scripts/WebForms/WebUIValidation.js" />
+                <asp:ScriptReference Name="MenuStandards.js" Assembly="System.Web" Path="~/Scripts/WebForms/MenuStandards.js" />
+                <asp:ScriptReference Name="GridView.js" Assembly="System.Web" Path="~/Scripts/WebForms/GridView.js" />
+                <asp:ScriptReference Name="DetailsView.js" Assembly="System.Web" Path="~/Scripts/WebForms/DetailsView.js" />
+                <asp:ScriptReference Name="TreeView.js" Assembly="System.Web" Path="~/Scripts/WebForms/TreeView.js" />
+                <asp:ScriptReference Name="WebParts.js" Assembly="System.Web" Path="~/Scripts/WebForms/WebParts.js" />
+                <asp:ScriptReference Name="Focus.js" Assembly="System.Web" Path="~/Scripts/WebForms/Focus.js" />
+                <asp:ScriptReference Name="WebFormsBundle" />
+                <%--Site Scripts--%>
+            </Scripts>
+        </asp:ScriptManager>
+
+        <nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
+            <div class="container-fluid">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarColor01">
+                    <ul class="navbar-nav me-auto">
+                        <%--<li class="nav-item">
+                            <a class="nav-link" href="#">Features</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Pricing</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">About</a>
+                        </li>--%>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Masters</a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="AreaMaster.aspx">Area Master</a>
+                                <a class="dropdown-item" href="CustomerMaster.aspx">Customer Master</a>
+                                <a class="dropdown-item" href="ProductMaster.aspx">Product Master</a>
+                                <a class="dropdown-item" href="CategoryMaster.aspx">Product Category</a>
+                                <a class="dropdown-item" href="EmployeeMaster.aspx">Employee Master</a>
+                                <a class="dropdown-item" href="GSTMaster.aspx">GST Master</a>
+                                <a class="dropdown-item" href="PricingMaster.aspx">Pricing Master</a>
+                                <a class="dropdown-item" href="RoleMaster.aspx">Role Master</a>
+                                <a class="dropdown-item" href="UserMaster.aspx">User Master</a>
+                                <a class="dropdown-item" href="ProductGSTMapping.aspx">Product-GST Mapping</a>
+                            </div>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Transactions</a>
+                            <div class="dropdown-menu">
+                                <%--<div class="dropdown-divider"></div>--%>
+                                <a class="dropdown-item" href="DeliveryInformationAdmin.aspx">Delivery Information - Admin</a>
+                                <a class="dropdown-item" href="DeliveryInformationUser.aspx">Delivery Information - User</a>
+                            </div>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Reports</a>
+                            <div class="dropdown-menu">
+                                <%--<div class="dropdown-divider"></div>--%>
+                                <a class="dropdown-item" href="DeliveryInfoPaymentsReport.aspx">Delivery Information - Payments</a>
+                                <a class="dropdown-item" href="DeliveryInfoProductsReport.aspx">Delivery Information - Products</a>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="ToDoTasks.aspx">To-Do Tasks</a>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <!-- Dropdown for logged-in user -->
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" runat="server" role="button" data-bs-toggle="dropdown"></a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <%--<label id="LblLoginTime" runat="server"></label>--%>
+                                    <%--<hr class="dropdown-divider">--%>
+                                </li>
+                                <li>
+                                    <!-- Logout must be a POST request for security -->
+                                    <button id="BtnLogout" type="button" runat="server" onserverclick="BtnLogout_ServerClick" class="dropdown-item btn btn-link">Logout</button>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="body-content">
+            <asp:ContentPlaceHolder ID="MainContent" runat="server">
+            </asp:ContentPlaceHolder>
+        </div>
+    </form>
+    <asp:PlaceHolder runat="server">
+        <%: Scripts.Render("~/Scripts/bootstrap.js") %>
+    </asp:PlaceHolder>
+</body>
+</html>
