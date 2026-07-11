@@ -77,69 +77,35 @@
                 </div>
             </div>
             <asp:Label ID="lblMessage" runat="server" CssClass="alert alert-info mt-3" Style="display: none;"></asp:Label>
+            <asp:HiddenField ID="hfUserId" runat="server" />
         </div>
 
         <div class="table-responsive">
             <asp:GridView ID="grdUserMaster" runat="server" AutoGenerateColumns="false"
-                DataKeyNames="user_id" OnRowDataBound="grdUserMaster_RowDataBound" OnRowEditing="grdUserMaster_RowEditing"
-                OnRowUpdating="grdUserMaster_RowUpdating" OnRowCancelingEdit="grdUserMaster_RowCancelingEdit"
+                DataKeyNames="user_id" OnRowDataBound="grdUserMaster_RowDataBound"
+                OnRowCommand="grdUserMaster_RowCommand"
                 OnRowDeleting="grdUserMaster_RowDeleting" CssClass="table table-striped table-bordered table-hover">
                 <Columns>
                     <asp:BoundField DataField="user_id" HeaderText="User ID" ReadOnly="true" HeaderStyle-CssClass="bg-primary text-white" />
                     <%--<asp:BoundField DataField="username" HeaderText="Username" />--%>
-                    <asp:TemplateField HeaderText="Username" HeaderStyle-CssClass="bg-primary text-white">
-                        <ItemTemplate>
-                            <%# Eval("username") %>
-                        </ItemTemplate>
-                        <EditItemTemplate>
-                            <asp:TextBox ID="grdTxtusername" runat="server" Text='<%# Bind("username") %>' class="form-control form-control-sm"
-                                TabIndex="2"></asp:TextBox>
-                        </EditItemTemplate>
-                    </asp:TemplateField>
+                    <asp:BoundField DataField="username" HeaderText="Username" ReadOnly="true" HeaderStyle-CssClass="bg-primary text-white" />
                     <%--<asp:BoundField DataField="employee_id" HeaderText="Employee Id" />--%>
-                    <asp:TemplateField HeaderText="Employee Id" HeaderStyle-CssClass="bg-primary text-white">
-                        <ItemTemplate>
-                            <%# Eval("employee_id") %>
-                        </ItemTemplate>
-                        <EditItemTemplate>
-                            <asp:DropDownList ID="GrdDdlEmployeeId" runat="server" AutoPostBack="false" EnableViewState="true" class="form-select form-select-sm" TabIndex="2">
-                            </asp:DropDownList>
-                        </EditItemTemplate>
-                    </asp:TemplateField>
-                    <%--<asp:BoundField DataField="role_name" HeaderText="Role" />--%>
-                    <asp:TemplateField HeaderText="Role" HeaderStyle-CssClass="bg-primary text-white">
-                        <ItemTemplate>
-                            <%# Eval("role_id") %>
-                        </ItemTemplate>
-                        <EditItemTemplate>
-                            <asp:DropDownList ID="GrdDdlRole" runat="server" AutoPostBack="false" EnableViewState="true" class="form-select form-select-sm" TabIndex="3">
-                            </asp:DropDownList>
-                        </EditItemTemplate>
-                    </asp:TemplateField>
-                    <%--<asp:BoundField DataField="email" HeaderText="Email" />--%>
-                    <asp:TemplateField HeaderText="Email" HeaderStyle-CssClass="bg-primary text-white">
-                        <ItemTemplate>
-                            <%# Eval("email") %>
-                        </ItemTemplate>
-                        <EditItemTemplate>
-                            <asp:TextBox ID="grdTxtEmail" runat="server" TextMode="Email" Text='<%# Bind("email") %>' class="form-control form-control-sm"
-                                TabIndex="2"></asp:TextBox>
-                        </EditItemTemplate>
-                    </asp:TemplateField>
-                    <%--<asp:BoundField DataField="is_active" HeaderText="Active" DataFormatString="{0:Yes;No}" />--%>
+                    <asp:BoundField DataField="employee_id" HeaderText="Employee Id" ReadOnly="true" HeaderStyle-CssClass="bg-primary text-white" />
+                    <asp:BoundField DataField="role_name" HeaderText="Role" ReadOnly="true" HeaderStyle-CssClass="bg-primary text-white" />
+                    <asp:BoundField DataField="email" HeaderText="Email" ReadOnly="true" HeaderStyle-CssClass="bg-primary text-white" />
                     <asp:TemplateField HeaderText="Is Active" HeaderStyle-CssClass="bg-primary text-white" ItemStyle-HorizontalAlign="Center" ItemStyle-VerticalAlign="Middle">
                         <ItemTemplate>
                             <div class="form-check">
-                                <input id="GrdChkBoxIsActive" runat="server" class="form-check-input" type="checkbox" value="">
+                                <input id="GrdChkBoxIsActive" runat="server" class="form-check-input" type="checkbox" value="" disabled="disabled">
                             </div>
                         </ItemTemplate>
-                        <EditItemTemplate>
-                            <div class="form-check">
-                                <input id="GrdChkBoxIsActive1" runat="server" class="form-check-input" type="checkbox" value="">
-                            </div>
-                        </EditItemTemplate>
                     </asp:TemplateField>
-                    <asp:CommandField ShowEditButton="true" ShowDeleteButton="true" HeaderStyle-CssClass="bg-primary text-white" />
+                    <asp:TemplateField HeaderText="Actions" HeaderStyle-CssClass="bg-primary text-white">
+                        <ItemTemplate>
+                            <asp:LinkButton ID="btnEdit" runat="server" CommandName="EditRecord" CommandArgument='<%# Eval("user_id") %>' Text="Edit" CssClass="btn btn-sm btn-primary me-1" />
+                            <asp:LinkButton ID="btnDelete" runat="server" CommandName="Delete" Text="Delete" CssClass="btn btn-sm btn-danger" OnClientClick="return confirm('Are you sure you want to delete this record?');" />
+                        </ItemTemplate>
+                    </asp:TemplateField>
                 </Columns>
             </asp:GridView>
             <hr />

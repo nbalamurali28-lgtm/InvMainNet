@@ -3,7 +3,6 @@ using System;
 using System.Data;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using WebGrease.Css.Ast.Selectors;
 
 namespace InventoryManagement
 {
@@ -64,12 +63,6 @@ namespace InventoryManagement
                     return;
                 }
 
-                if (string.IsNullOrEmpty(txtPassword.Text))
-                {
-                    ShowMessage("Password are required.", "warning");
-                    return;
-                }
-
                 if (string.IsNullOrEmpty(ddlRole.SelectedValue))
                 {
                     ShowMessage("Role is required.", "warning");
@@ -84,18 +77,37 @@ namespace InventoryManagement
 
                 var objUser = new ClsUserMaster
                 {
-                    USER_ID = "U" + DateTime.Now.Ticks.ToString().Substring(DateTime.Now.Ticks.ToString().Length - 8),
                     USERNAME = txtUsername.Text.Trim(),
-                    PASSWORD = txtPassword.Text,
                     EMPLOYEE_ID = DdlEmployeeId.SelectedValue.Trim(),
                     EMAIL = txtEmail.Text.Trim(),
                     ROLE_ID = ddlRole.SelectedValue,
-                    IS_ACTIVE = chkIsActive.Checked,
-                    //CREATED_BY = Session["UserName"]?.ToString() ?? "SYSTEM",
-                    //CREATED_AT = DateTime.Now
+                    IS_ACTIVE = chkIsActive.Checked
                 };
 
-                int result = objUserMaster.CreateUser(objUser);
+                int result = 0;
+                if (string.IsNullOrEmpty(hfUserId.Value))
+                {
+                    // Create new user
+                    if (string.IsNullOrEmpty(txtPassword.Text))
+                    {
+                        ShowMessage("Password is required.", "warning");
+                        return;
+                    }
+                    objUser.USER_ID = "U" + DateTime.Now.Ticks.ToString().Substring(DateTime.Now.Ticks.ToString().Length - 8);
+                    objUser.PASSWORD = txtPassword.Text;
+                    result = objUserMaster.CreateUser(objUser);
+                }
+                else
+                {
+                    // Update existing user
+                    objUser.USER_ID = hfUserId.Value;
+                    if (!string.IsNullOrEmpty(txtPassword.Text))
+                    {
+                        objUser.PASSWORD = txtPassword.Text;
+                    }
+                    result = objUserMaster.UpdateUser(objUser);
+                }
+
                 ShowResult(result);
                 if (result > 0)
                 {
@@ -111,43 +123,60 @@ namespace InventoryManagement
 
         protected void btnReset_Click(object sender, EventArgs e) => ClearControls();
 
-        protected void grdUserMaster_RowEditing(object sender, GridViewEditEventArgs e)
+        protected void grdUserMaster_RowCommand(object sender, GridViewCommandEventArgs e)
         {
-            grdUserMaster.EditIndex = e.NewEditIndex;
-            BindGridView();
+            if (e.CommandName == "EditRecord")
+            {
+                string userId = e.CommandArgument.ToString();
+                LoadUserForEdit(userId);
+            }
         }
 
-        protected void grdUserMaster_RowUpdating(object sender, GridViewUpdateEventArgs e)
+        private void LoadUserForEdit(string userId)
         {
             try
             {
-                string userId = grdUserMaster.DataKeys[e.RowIndex].Value.ToString();
-                var objUser = new ClsUserMaster
+                DataTable dt = objUserMaster.GetUserMaster();
+                DataRow[] rows = dt.Select($"user_id = '{userId}'");
+                if (rows.Length > 0)
                 {
-                    USER_ID = userId,
-                    EMPLOYEE_ID = ((DropDownList)grdUserMaster.Rows[e.RowIndex].Cells[2].FindControl["GrdDdlEmployeeId"]).SelectedValue.Trim(),
-                    ROLE_ID = ((DropDownList)grdUserMaster.Rows[e.RowIndex].Cells[3].Controls[0]).SelectedValue.Trim(),
-                    EMAIL = ((TextBox)grdUserMaster.Rows[e.RowIndex].Cells[4].Controls[0]).Text.Trim(),
-                    IS_ACTIVE = ((CheckBox)grdUserMaster.Rows[e.RowIndex].Cells[4].Controls[0]).Checked,
-                    UPDATED_BY = Session["UserID"]?.ToString() ?? "SYSTEM",
-                    UPDATED_AT = DateTime.Now
-                };
+                    DataRow row = rows[0];
+                    hfUserId.Value = row["user_id"].ToString();
+                    txtUsername.Text = row["username"].ToString();
+                    txtPassword.Text = ""; // Don't populate password for security
 
-                int result = objUserMaster.UpdateUser(objUser);
-                ShowResult(result);
-                grdUserMaster.EditIndex = -1;
-                BindGridView();
+                    // Handle employee_id - set to first item (-- Select --) if blank
+                    string employeeId = row["employee_id"].ToString();
+                    if (!string.IsNullOrEmpty(employeeId) && DdlEmployeeId.Items.FindByValue(employeeId) != null)
+                    {
+                        DdlEmployeeId.SelectedValue = employeeId;
+                    }
+                    else
+                    {
+                        DdlEmployeeId.SelectedIndex = 0; // Select "-- Select --"
+                    }
+
+                    // Handle role_id
+                    string roleId = row["role_id"].ToString();
+                    if (!string.IsNullOrEmpty(roleId) && ddlRole.Items.FindByValue(roleId) != null)
+                    {
+                        ddlRole.SelectedValue = roleId;
+                    }
+                    else
+                    {
+                        ddlRole.SelectedIndex = 0; // Select "-- Select --"
+                    }
+
+                    txtEmail.Text = row["email"].ToString();
+                    chkIsActive.Checked = Convert.ToBoolean(row["is_active"]);
+
+                    ShowMessage("Edit mode: Modify the user details and click Save to update.", "info");
+                }
             }
             catch (Exception ex)
             {
-                ShowMessage("Error: " + ex.Message, "danger");
+                ShowMessage("Error loading user: " + ex.Message, "danger");
             }
-        }
-
-        protected void grdUserMaster_RowCancelingEdit(object sender, GridViewCancelEditEventArgs e)
-        {
-            grdUserMaster.EditIndex = -1;
-            BindGridView();
         }
 
         protected void grdUserMaster_RowDeleting(object sender, GridViewDeleteEventArgs e)
@@ -168,6 +197,7 @@ namespace InventoryManagement
 
         private void ClearControls()
         {
+            hfUserId.Value = "";
             txtUsername.Text = txtPassword.Text = txtEmail.Text = "";
             DdlEmployeeId.SelectedIndex = 0;
             ddlRole.SelectedIndex = 0;
@@ -214,31 +244,13 @@ namespace InventoryManagement
             {
                 if (e.Row.RowType == DataControlRowType.DataRow)
                 {
-                    // Find the Delete button (it is usually the first control in the CommandField cell)
-                    foreach (Control control in e.Row.Cells[e.Row.Cells.Count - 1].Controls)
+                    // Set the checkbox state based on is_active value
+                    var chkIsActive = e.Row.FindControl("GrdChkBoxIsActive") as System.Web.UI.HtmlControls.HtmlInputCheckBox;
+                    if (chkIsActive != null)
                     {
-                        if (control is LinkButton && ((LinkButton)control).CommandName == "Delete")
-                        {
-                            ((LinkButton)control).OnClientClick = "return confirm('Are you sure you want to delete this record?');";
-                        }
+                        DataRowView drv = (DataRowView)e.Row.DataItem;
+                        chkIsActive.Checked = Convert.ToBoolean(drv["is_active"]);
                     }
-                }
-
-                if (e.Row.RowType == DataControlRowType.DataRow && grdUserMaster.EditIndex == e.Row.RowIndex)
-                {
-                    DropDownList GrdDdlEmployeeId = (DropDownList)e.Row.Cells[2].FindControl("GrdDdlEmployeeId");
-                    GrdDdlEmployeeId.DataSource = (DataTable)ViewState["dtEmployees"]; // Method to fetch your data
-                    GrdDdlEmployeeId.DataTextField = "emp_name";
-                    GrdDdlEmployeeId.DataValueField = "emp_code";
-                    GrdDdlEmployeeId.DataBind();
-                    GrdDdlEmployeeId.Items.Insert(0, new ListItem("-- Select --", ""));
-
-                    DropDownList GrdDdlRole = (DropDownList)e.Row.FindControl("GrdDdlRole");
-                    GrdDdlRole.DataSource = (DataTable)ViewState["dtRoles"]; // Method to fetch your data
-                    GrdDdlRole.DataTextField = "role_name";
-                    GrdDdlRole.DataValueField = "role_id";
-                    GrdDdlRole.DataBind();
-                    GrdDdlRole.Items.Insert(0, new ListItem("-- Select --", ""));
                 }
             }
             catch (Exception)
