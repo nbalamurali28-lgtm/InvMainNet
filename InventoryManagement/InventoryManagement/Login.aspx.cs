@@ -36,15 +36,18 @@ namespace InventoryManagement
                 string password = txtPassword.Text.Trim();
 
                 // Simple static validation (Replace this with a Database check!)
-                DataTable dtUser = objLogin.GetUserDetails(userName);
+                DataTable dtUser = objLogin.GetUserDetails(userName, password);
 
                 if(dtUser != null && dtUser.Rows.Count > 0)
                 {
-                    if (userName == Convert.ToString(dtUser.Rows[0]["username"]) && password == "admin")
+                    if (userName == Convert.ToString(dtUser.Rows[0]["username"]).Trim() && password == Convert.ToString(dtUser.Rows[0]["password"]).Trim())
                     {
                         // Create a session to keep the user logged in
-                        Session["UserRoleId"] = Convert.ToString(dtUser.Rows[0]["role_id"]);
+                        Session["UserId"] = Convert.ToString(dtUser.Rows[0]["user_id"]);
                         Session["UserName"] = Convert.ToString(dtUser.Rows[0]["username"]);
+                        Session["UserRoleId"] = Convert.ToString(dtUser.Rows[0]["role_id"]);
+                        Session["UserRoleName"] = Convert.ToString(dtUser.Rows[0]["role_name"]);
+                        Session["EmployeeId"] = Convert.ToString(dtUser.Rows[0]["employee_id"]);
                         Session["LoginTime"] = DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss tt", CultureInfo.InvariantCulture);
                         Response.Redirect("Default.aspx");
                     }

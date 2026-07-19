@@ -36,7 +36,7 @@ namespace InventoryManagement
                     LblDeliveryId.Visible = false;
 
                     // Load product details for product dropdown in gridview
-                    DataSet ds = objDeliveryInformation.GetMasters(); ;
+                    DataSet ds = objDeliveryInformation.GetMasters();
                     if (ds != null && ds.Tables.Count > 0)
                     {
                         ViewState["dtProducts"] = ds.Tables[0];
@@ -48,6 +48,9 @@ namespace InventoryManagement
                         DdlEmployeeId.DataBind();
                         DdlEmployeeId.Items.Insert(0, new ListItem("-- Select --", "0"));
                         DdlEmployeeId.Enabled = false;
+
+                        if (Convert.ToString(Session["EmployeeId"]) != "")
+                            DdlEmployeeId.SelectedValue = Convert.ToString(Session["EmployeeId"]);
 
                         ViewState["dtPriceMaster"] = ds.Tables[3];
                     }

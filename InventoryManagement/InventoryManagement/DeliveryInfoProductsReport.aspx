@@ -55,9 +55,10 @@
                     <asp:TextBox ID="TxtToDate" runat="server" TextMode="Date" CssClass="form-control form-control-sm" TabIndex="1"></asp:TextBox>
                     <asp:RequiredFieldValidator ID="RequiredFieldValidatorTxtToDate" runat="server" ControlToValidate="TxtToDate" ErrorMessage="To Date is required." CssClass="text-danger" Display="Dynamic" />
                 </div>
-                <div class="col-2" style="width: 15%;">
+                <div class="col-2" style="width: 35%;">
                     <asp:Button ID="btnView" runat="server" Text="View" class="btn btn-primary btn-sm" OnClick="btnView_Click" />
-                    <asp:Button ID="BtnExport" runat="server" Text="Export" class="btn btn-primary btn-sm" OnClick="BtnExport_Click" />
+                    <asp:Button ID="BtnExport" runat="server" Text="Export to Excel" class="btn btn-primary btn-sm" OnClick="BtnExport_Click" />
+                    <asp:Button ID="BtnExportPDF" runat="server" Text="Export to PDF" class="btn btn-primary btn-sm" OnClick="BtnExportPDF_Click" />
                     <asp:Button ID="BtnReset" runat="server" Text="Reset" class="btn btn-secondary btn-sm" OnClick="BtnReset_Click" />
                 </div>
             </div>

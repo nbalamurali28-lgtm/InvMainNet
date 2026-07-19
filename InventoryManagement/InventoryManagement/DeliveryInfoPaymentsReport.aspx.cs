@@ -1,8 +1,12 @@
 ﻿using InventoryManagement.IL;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+using iTextSharp.tool.xml;
 using System;
 using System.Data;
 using System.Globalization;
 using System.IO;
+using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -88,7 +92,7 @@ namespace InventoryManagement
                     e.Row.Cells[4].CssClass = "alignDataRowTextRight"; // Total Amount
 
                     e.Row.Cells[5].CssClass = "alignDataRowTextRight"; // Bank Transfer
-                    BankTransfer = BankTransfer + Convert.ToDecimal(DataBinder.Eval(e.Row.DataItem, "Bank Transfer"));
+                    BankTransfer = BankTransfer + Convert.ToDecimal(DataBinder.Eval(e.Row.DataItem, "Online"));
 
                     e.Row.Cells[6].CssClass = "alignDataRowTextRight"; // Card
                     Card = Card + Convert.ToDecimal(DataBinder.Eval(e.Row.DataItem, "Card"));
@@ -191,6 +195,65 @@ namespace InventoryManagement
 
                 Response.Flush();
                 Response.End();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        protected void BtnExportPDF_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(TxtFromDate.Text))
+                {
+                    ScriptManager.RegisterStartupScript(this.Page, this.GetType(), "Popup", "showMandatoryMessage('Please select a From Date.');", true);
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(TxtToDate.Text))
+                {
+                    ScriptManager.RegisterStartupScript(this.Page, this.GetType(), "Popup", "showMandatoryMessage('Please select To Date.');", true);
+                    return;
+                }
+
+                if (GrdViewDeliveryInfo.Rows.Count == 0)
+                {
+                    ScriptManager.RegisterStartupScript(this.Page, this.GetType(), "Popup", "showSuccessMessage('No records found for the selected date range.','Error');", true);
+                    return;
+                }
+
+                // Clear headers and set response type
+                string filename = "Delivery_Info_Payments_Report_" + DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss tt", CultureInfo.InvariantCulture).Replace(":", "-") + ".pdf";
+                Response.ContentType = "application/pdf";
+                Response.AddHeader("content-disposition", "attachment;filename=" + filename);
+                Response.Cache.SetCacheability(HttpCacheability.NoCache);
+
+                using (StringWriter sw = new StringWriter())
+                {
+                    using (HtmlTextWriter hw = new HtmlTextWriter(sw))
+                    {
+                        //To Export all pages
+                        GrdViewDeliveryInfo.AllowPaging = false;
+                        GrdViewDeliveryInfo.RowStyle.HorizontalAlign = HorizontalAlign.Right;
+                        //this.BindGrid();
+
+                        GrdViewDeliveryInfo.RenderControl(hw);
+                        StringReader sr = new StringReader(sw.ToString());
+                        Document pdfDoc = new Document(PageSize.A4, 10f, 10f, 10f, 0f);
+
+                        using (MemoryStream memoryStream = new MemoryStream())
+                        {
+                            PdfWriter writer = PdfWriter.GetInstance(pdfDoc, Response.OutputStream);
+                            pdfDoc.Open();
+                            XMLWorkerHelper.GetInstance().ParseXHtml(writer, pdfDoc, sr);
+                            pdfDoc.Close();
+                            Response.Write(pdfDoc);
+                            Response.End();
+                        }
+                    }
+                }
             }
             catch (Exception)
             {

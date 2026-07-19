@@ -40,6 +40,20 @@
         setTimeout("preventBack()", 0);
         window.onunload = function () { null };
     </script>
+
+    <style>
+        /* Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
 </head>
 <body>
     <form runat="server">
@@ -69,39 +83,32 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarColor01">
                     <ul class="navbar-nav me-auto">
-                        <%--<li class="nav-item">
-                            <a class="nav-link" href="#">Features</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Pricing</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">About</a>
-                        </li>--%>
-                        <li class="nav-item dropdown">
+                        <li id="menuMasters" runat="server" visible="false" class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Masters</a>
                             <div class="dropdown-menu">
                                 <a class="dropdown-item" href="AreaMaster.aspx">Area Master</a>
                                 <a class="dropdown-item" href="CustomerMaster.aspx">Customer Master</a>
-                                <a class="dropdown-item" href="ProductMaster.aspx">Product Master</a>
-                                <a class="dropdown-item" href="CategoryMaster.aspx">Product Category</a>
                                 <a class="dropdown-item" href="EmployeeMaster.aspx">Employee Master</a>
+                                <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="GSTMaster.aspx">GST Master</a>
+                                <a class="dropdown-item" href="CategoryMaster.aspx">Product Category</a>
+                                <a class="dropdown-item" href="ProductMaster.aspx">Product Master</a>
+                                <a class="dropdown-item" href="ProductGSTMapping.aspx">Product-GST Mapping</a>
                                 <a class="dropdown-item" href="PricingMaster.aspx">Pricing Master</a>
+                                <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="RoleMaster.aspx">Role Master</a>
                                 <a class="dropdown-item" href="UserMaster.aspx">User Master</a>
-                                <a class="dropdown-item" href="ProductGSTMapping.aspx">Product-GST Mapping</a>
                             </div>
                         </li>
-                        <li class="nav-item dropdown">
+                        <li id="menuTransactions" runat="server" visible="false" class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Transactions</a>
                             <div class="dropdown-menu">
                                 <%--<div class="dropdown-divider"></div>--%>
-                                <a class="dropdown-item" href="DeliveryInformationAdmin.aspx">Delivery Information - Admin</a>
+                                <a id="menuDeliveryInfoAdmin" runat="server" visible="false" class="dropdown-item" href="DeliveryInformationAdmin.aspx">Delivery Information - Admin</a>
                                 <a class="dropdown-item" href="DeliveryInformationUser.aspx">Delivery Information - User</a>
                             </div>
                         </li>
-                        <li class="nav-item dropdown">
+                        <li id="menuReports" runat="server" visible="false" class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Reports</a>
                             <div class="dropdown-menu">
                                 <%--<div class="dropdown-divider"></div>--%>
@@ -109,7 +116,7 @@
                                 <a class="dropdown-item" href="DeliveryInfoProductsReport.aspx">Delivery Information - Products</a>
                             </div>
                         </li>
-                        <li class="nav-item">
+                        <li id="menuToDoTasks" runat="server" visible="false" class="nav-item">
                             <a class="nav-link" href="ToDoTasks.aspx">To-Do Tasks</a>
                         </li>
                     </ul>
@@ -118,11 +125,11 @@
                     <!-- Dropdown for logged-in user -->
                     <ul class="navbar-nav">
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" runat="server" role="button" data-bs-toggle="dropdown"></a>
+                            <a class="nav-link dropdown-toggle" href="#" id="userNameDropdown" runat="server" role="button" data-bs-toggle="dropdown"></a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li>
-                                    <%--<label id="LblLoginTime" runat="server"></label>--%>
-                                    <%--<hr class="dropdown-divider">--%>
+                                    <label id="LblUserRoleName" runat="server"></label>
+                                    <div class="dropdown-divider"></div>
                                 </li>
                                 <li>
                                     <!-- Logout must be a POST request for security -->
