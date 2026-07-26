@@ -48,14 +48,27 @@
                             </div>
                             <div class="col-md-2">
                                 <div class="form-group">
-                                    <label>To Date</label>
-                                    <asp:TextBox ID="txtToDate" runat="server" CssClass="form-control" TextMode="Date"></asp:TextBox>
+                                    <label>From Date *</label>
+                                    <asp:TextBox ID="txtFromDate" runat="server" CssClass="form-control" TextMode="DateTimeLocal"></asp:TextBox>
+                                    <asp:Label ID="lblFromDateDisplay" runat="server" CssClass="form-control-plaintext" Visible="false"></asp:Label>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>To Date</label>
+                                    <asp:TextBox ID="txtToDate" runat="server" CssClass="form-control" TextMode="DateTimeLocal"></asp:TextBox>
+                                </div>
+                            </div>
+                            <div class="col-md-1">
                                 <div class="form-group">
                                     <label>&nbsp;</label>
                                     <asp:Button ID="btnSave" runat="server" CssClass="btn btn-primary form-control" Text="Save" OnClick="btnSave_Click" />
+                                </div>
+                            </div>
+                            <div class="col-md-1">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <asp:Button ID="btnReset" runat="server" CssClass="btn btn-secondary form-control" Text="Reset" OnClick="btnReset_Click" />
                                 </div>
                             </div>
                         </div>
@@ -81,8 +94,8 @@
                                 <asp:BoundField DataField="ProductName" HeaderText="Product" />
                                 <asp:BoundField DataField="base_price" HeaderText="Base Price" DataFormatString="{0:N2}" />
                                 <asp:BoundField DataField="gst_percentage" HeaderText="GST %" DataFormatString="{0:N2}" />
-                                <asp:BoundField DataField="effective_from" HeaderText="From" DataFormatString="{0:yyyy-MM-dd}" />
-                                <asp:BoundField DataField="effective_to" HeaderText="To" DataFormatString="{0:yyyy-MM-dd}" />
+                                <asp:BoundField DataField="effective_from" HeaderText="From" DataFormatString="{0:yyyy-MM-dd HH:mm}" />
+                                <asp:BoundField DataField="effective_to" HeaderText="To" DataFormatString="{0:yyyy-MM-dd HH:mm}" />
                                 <asp:CommandField ShowEditButton="true" ShowDeleteButton="true" ItemStyle-Width="100px" />
                             </Columns>
                             <EditRowStyle BackColor="#FFE699" />

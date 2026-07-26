@@ -77,24 +77,84 @@ namespace InventoryManagement
                     return;
                 }
 
-                // If editing existing pricing, update; otherwise create new
-                if (ViewState["EditPricingID"] != null && int.TryParse(ViewState["EditPricingID"].ToString(), out var editId) && editId > 0)
-                {
-                    DateTime? effectiveTo = null;
-                    if (!string.IsNullOrEmpty(txtToDate.Text))
-                    {
-                        effectiveTo = DateTime.Parse(txtToDate.Text);
-                    }
+                // Validate From Date is provided
+                DateTime? effectiveFrom = null;
+                DateTime? effectiveTo = null;
+                int editId = 0;
 
+                // If editing, use the preserved From Date (read-only display)
+                bool isEditing = ViewState["EditPricingID"] != null && int.TryParse(ViewState["EditPricingID"].ToString(), out editId) && editId > 0;
+
+                if (isEditing)
+                {
                     // Use the original effective_from date (preserved from when Edit was clicked)
-                    DateTime effectiveFrom = ViewState["OriginalEffectiveFrom"] != null 
+                    effectiveFrom = ViewState["OriginalEffectiveFrom"] != null 
                         ? (DateTime)ViewState["OriginalEffectiveFrom"] 
                         : DateTime.Now;
+                }
+                else
+                {
+                    // For new records, From Date is required
+                    if (string.IsNullOrEmpty(txtFromDate.Text))
+                    {
+                        ShowMessage("Please enter From Date.", "warning");
+                        return;
+                    }
+
+                    if (!DateTime.TryParse(txtFromDate.Text, out DateTime fromDate))
+                    {
+                        ShowMessage("Invalid From Date format.", "warning");
+                        return;
+                    }
+
+                    effectiveFrom = fromDate;
+                }
+
+                // Validate To Date if provided
+                if (!string.IsNullOrEmpty(txtToDate.Text))
+                {
+                    if (!DateTime.TryParse(txtToDate.Text, out DateTime toDate))
+                    {
+                        ShowMessage("Invalid To Date format.", "warning");
+                        return;
+                    }
+
+                    effectiveTo = toDate;
+
+                    // Validate: From Date must be before To Date
+                    if (effectiveFrom.HasValue && effectiveTo.HasValue)
+                    {
+                        if (effectiveFrom.Value >= effectiveTo.Value)
+                        {
+                            ShowMessage("From Date must be before To Date.", "warning");
+                            return;
+                        }
+                    }
+                }
+
+                int productId = int.Parse(ddlProduct.SelectedValue);
+
+                // If editing existing pricing, update; otherwise create new
+                if (isEditing)
+                {
+                    // Check for overlapping date ranges (excluding current pricing)
+                    if (effectiveFrom.HasValue && objPricingMaster.HasOverlappingPricingExcludingCurrent(productId, editId, effectiveFrom.Value, effectiveTo))
+                    {
+                        ShowMessage("Cannot update. This date range overlaps with an existing pricing entry for this product. Please check the From Date and To Date.", "warning");
+                        return;
+                    }
+
+                    // Check if there are other open pricing records for this product (excluding current)
+                    if (objPricingMaster.HasOpenPricingExcludingCurrent(productId, editId))
+                    {
+                        ShowMessage("Cannot update. Another pricing entry for this product exists without an 'Effective To' date. Please close that pricing entry first.", "warning");
+                        return;
+                    }
 
                     var objPricing = new ClsPricingMaster
                     {
                         PRICING_ID = editId,
-                        PRODUCT_ID = int.Parse(ddlProduct.SelectedValue),
+                        PRODUCT_ID = productId,
                         BASE_PRICE = decimal.Parse(txtBasePrice.Text),
                         GST_ID = ddlGST.SelectedValue,
                         EFFECTIVE_FROM = effectiveFrom,
@@ -114,12 +174,27 @@ namespace InventoryManagement
                 }
                 else
                 {
+                    // Check for overlapping date ranges
+                    if (effectiveFrom.HasValue && objPricingMaster.HasOverlappingPricing(productId, effectiveFrom.Value, effectiveTo))
+                    {
+                        ShowMessage("Cannot add new pricing. This date range overlaps with an existing pricing entry for this product. Please check the From Date and To Date.", "warning");
+                        return;
+                    }
+
+                    // Check if product already has an open pricing (without effective_to date)
+                    if (objPricingMaster.HasOpenPricing(productId))
+                    {
+                        ShowMessage("Cannot add new pricing. This product already has an active pricing entry without an 'Effective To' date. Please close the existing pricing entry by setting its 'To Date' before adding a new price.", "warning");
+                        return;
+                    }
+
                     var objPricing = new ClsPricingMaster
                     {
-                        PRODUCT_ID = int.Parse(ddlProduct.SelectedValue),
+                        PRODUCT_ID = productId,
                         BASE_PRICE = decimal.Parse(txtBasePrice.Text),
                         GST_ID = ddlGST.SelectedValue,
-                        EFFECTIVE_FROM = DateTime.Now,
+                        EFFECTIVE_FROM = effectiveFrom,
+                        EFFECTIVE_TO = effectiveTo,
                         EFFECTIVE_STATUS = "ACTIVE",
                         CREATED_BY = Session["UserID"]?.ToString() ?? "SYSTEM",
                         CREATED_AT = DateTime.Now
@@ -140,6 +215,14 @@ namespace InventoryManagement
             }
         }
 
+        protected void btnReset_Click(object sender, EventArgs e)
+        {
+            ClearControls();
+            // Focus on the product dropdown using ClientScript
+            ScriptManager.RegisterStartupScript(this, GetType(), "FocusProduct", 
+                "$('#" + ddlProduct.ClientID + "').focus();", true);
+        }
+
         protected void grdPricingMaster_RowEditing(object sender, GridViewEditEventArgs e)
         {
             try
@@ -156,21 +239,27 @@ namespace InventoryManagement
                     txtBasePrice.Text = r["base_price"] != DBNull.Value ? Convert.ToDecimal(r["base_price"]).ToString("0.00") : "";
                     ddlGST.SelectedValue = r["gst_id"] != DBNull.Value ? r["gst_id"].ToString() : "";
 
-                    // Populate To Date if it exists
+                    // Display From Date as read-only when editing
+                    if (r["effective_from"] != DBNull.Value)
+                    {
+                        DateTime fromDate = Convert.ToDateTime(r["effective_from"]);
+                        ViewState["OriginalEffectiveFrom"] = fromDate;
+
+                        // Hide the textbox and show the label with datetime format
+                        txtFromDate.Visible = false;
+                        lblFromDateDisplay.Visible = true;
+                        lblFromDateDisplay.Text = fromDate.ToString("yyyy-MM-dd HH:mm");
+                    }
+
+                    // Populate To Date if it exists (using datetime-local format)
                     if (r["effective_to"] != DBNull.Value)
                     {
                         DateTime toDate = Convert.ToDateTime(r["effective_to"]);
-                        txtToDate.Text = toDate.ToString("yyyy-MM-dd");
+                        txtToDate.Text = toDate.ToString("yyyy-MM-ddTHH:mm");
                     }
                     else
                     {
                         txtToDate.Text = "";
-                    }
-
-                    // Store the original effective_from date to preserve it during update
-                    if (r["effective_from"] != DBNull.Value)
-                    {
-                        ViewState["OriginalEffectiveFrom"] = Convert.ToDateTime(r["effective_from"]);
                     }
 
                     ViewState["EditPricingID"] = pricingId;
@@ -267,6 +356,10 @@ namespace InventoryManagement
             ddlProduct.SelectedValue = "";
             txtBasePrice.Text = "";
             ddlGST.SelectedValue = "";
+            txtFromDate.Text = "";
+            txtFromDate.Visible = true;
+            lblFromDateDisplay.Visible = false;
+            lblFromDateDisplay.Text = "";
             txtToDate.Text = "";
             ViewState["EditPricingID"] = null;
             ViewState["OriginalEffectiveFrom"] = null;

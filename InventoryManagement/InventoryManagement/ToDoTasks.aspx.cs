@@ -23,18 +23,8 @@ namespace InventoryManagement
             try
             {
                 DataTable dt = objToDoTask.GetActiveTasks();
-                if (dt.Rows.Count > 0)
-                {
-                    rptTasks.DataSource = dt;
-                    rptTasks.DataBind();
-                    lblNoTasks.Visible = false;
-                }
-                else
-                {
-                    rptTasks.DataSource = null;
-                    rptTasks.DataBind();
-                    lblNoTasks.Visible = true;
-                }
+                gvTasks.DataSource = dt;
+                gvTasks.DataBind();
             }
             catch (Exception ex)
             {
@@ -109,20 +99,20 @@ namespace InventoryManagement
             }
         }
 
-        protected void rptTasks_ItemCommand(object source, RepeaterCommandEventArgs e)
+        protected void gvTasks_RowCommand(object sender, GridViewCommandEventArgs e)
         {
             try
             {
                 int taskId = Convert.ToInt32(e.CommandArgument);
 
-                if (e.CommandName == "Toggle")
+                if (e.CommandName == "MarkComplete")
                 {
                     // Toggle task completion status
                     int result = objToDoTask.ToggleTaskCompletion(taskId);
                     if (result > 0)
                     {
                         BindTasks();
-                        ShowMessage("Task status updated.", "success");
+                        ShowMessage("Task marked as complete.", "success");
                     }
                 }
                 else if (e.CommandName == "Edit")

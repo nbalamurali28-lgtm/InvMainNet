@@ -116,56 +116,52 @@
                             <h5 class="mb-0">My Active Tasks</h5>
                         </div>
                         <div class="card-body">
-                            <asp:Repeater ID="rptTasks" runat="server" OnItemCommand="rptTasks_ItemCommand">
-                                <HeaderTemplate>
-                                    <div class="row">
-                                </HeaderTemplate>
-                                <ItemTemplate>
-                                    <div class="col-md-6 col-lg-4">
-                                        <div class='task-card <%# Convert.ToBoolean(Eval("completed")) ? "completed" : "" %>'>
-                                            <div class="task-title">
-                                                <%# Eval("title") %>
-                                            </div>
-                                            <div class="task-description">
-                                                <%# Eval("description") %>
-                                            </div>
-                                            <div class="task-date">
-                                                <%# Eval("end_date") != DBNull.Value ? 
-                                                    "Due: " + Convert.ToDateTime(Eval("end_date")).ToString("MMM dd, yyyy") : 
-                                                    "No due date" %>
-                                            </div>
-                                            <div class="task-date">
-                                                Created: <%# Eval("created_at", "{0:MMM dd, yyyy HH:mm}") %>
-                                            </div>
-                                            <div class="mt-3">
-                                                <asp:LinkButton ID="btnToggle" runat="server" 
-                                                    CssClass='<%# Convert.ToBoolean(Eval("completed")) ? "btn btn-sm btn-incomplete" : "btn btn-sm btn-complete" %>'
-                                                    CommandName="Toggle" 
-                                                    CommandArgument='<%# Eval("task_id") %>'
-                                                    Text='<%# Convert.ToBoolean(Eval("completed")) ? "Mark Incomplete" : "Mark Complete" %>'>
-                                                </asp:LinkButton>
-                                                <asp:LinkButton ID="btnEdit" runat="server" 
-                                                    CssClass="btn btn-sm btn-info text-white ms-1" 
-                                                    CommandName="Edit" 
-                                                    CommandArgument='<%# Eval("task_id") %>'
-                                                    Text="Edit">
-                                                </asp:LinkButton>
-                                                <asp:LinkButton ID="btnDelete" runat="server" 
-                                                    CssClass="btn btn-sm btn-danger ms-1" 
-                                                    CommandName="Delete" 
-                                                    CommandArgument='<%# Eval("task_id") %>'
-                                                    OnClientClick="return confirm('Are you sure you want to delete this task?');"
-                                                    Text="Delete">
-                                                </asp:LinkButton>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </ItemTemplate>
-                                <FooterTemplate>
-                                    </div>
-                                </FooterTemplate>
-                            </asp:Repeater>
-                            <asp:Label ID="lblNoTasks" runat="server" CssClass="text-muted" Text="No active tasks found. All tasks are completed! Create a new task above or mark completed tasks as incomplete." Visible="false"></asp:Label>
+                            <asp:GridView ID="gvTasks" runat="server" 
+                                CssClass="table table-striped table-bordered table-hover"
+                                AutoGenerateColumns="False"
+                                OnRowCommand="gvTasks_RowCommand"
+                                EmptyDataText="No active tasks found. All tasks are completed! Create a new task above or mark completed tasks as incomplete.">
+                                <Columns>
+                                    <asp:BoundField DataField="task_id" HeaderText="Task ID" ItemStyle-Width="80px" />
+                                    <asp:BoundField DataField="title" HeaderText="Title" ItemStyle-Width="200px" />
+                                    <asp:BoundField DataField="description" HeaderText="Description" />
+                                    <asp:TemplateField HeaderText="End Date" ItemStyle-Width="120px">
+                                        <ItemTemplate>
+                                            <%# Eval("end_date") != DBNull.Value ? 
+                                                Convert.ToDateTime(Eval("end_date")).ToString("MMM dd, yyyy") : 
+                                                "No due date" %>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="Created At" ItemStyle-Width="150px">
+                                        <ItemTemplate>
+                                            <%# Eval("created_at", "{0:MMM dd, yyyy HH:mm}") %>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="Actions" ItemStyle-Width="280px">
+                                        <ItemTemplate>
+                                            <asp:LinkButton ID="btnMarkComplete" runat="server" 
+                                                CssClass="btn btn-sm btn-success"
+                                                CommandName="MarkComplete" 
+                                                CommandArgument='<%# Eval("task_id") %>'
+                                                Text="Mark Complete">
+                                            </asp:LinkButton>
+                                            <asp:LinkButton ID="btnEdit" runat="server" 
+                                                CssClass="btn btn-sm btn-info text-white ms-1" 
+                                                CommandName="Edit" 
+                                                CommandArgument='<%# Eval("task_id") %>'
+                                                Text="Edit">
+                                            </asp:LinkButton>
+                                            <asp:LinkButton ID="btnDelete" runat="server" 
+                                                CssClass="btn btn-sm btn-danger ms-1" 
+                                                CommandName="Delete" 
+                                                CommandArgument='<%# Eval("task_id") %>'
+                                                OnClientClick="return confirm('Are you sure you want to delete this task?');"
+                                                Text="Delete">
+                                            </asp:LinkButton>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                </Columns>
+                            </asp:GridView>
                         </div>
                     </div>
                 </div>
