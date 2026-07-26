@@ -100,6 +100,155 @@ namespace InventoryManagement.IL
             return rowsAffected;
         }
 
+        public bool HasOpenPricing(int productId)
+        {
+            DataTable dt = new DataTable();
+            try
+            {
+                sqlQueryBuilder = new StringBuilder();
+                sqlQueryBuilder.Append("SELECT COUNT(*) as count FROM pricing_master ");
+                sqlQueryBuilder.Append("WHERE ProductID = @product_id AND effective_to IS NULL");
+
+                objMySqlCommand = new MySqlCommand(sqlQueryBuilder.ToString());
+                objMySqlCommand.Parameters.AddWithValue("@product_id", productId);
+                dt = objUtility.GetDataTable(objMySqlCommand);
+
+                if (dt.Rows.Count > 0)
+                {
+                    int count = Convert.ToInt32(dt.Rows[0]["count"]);
+                    return count > 0;
+                }
+                return false;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public bool HasOpenPricingExcludingCurrent(int productId, int currentPricingId)
+        {
+            DataTable dt = new DataTable();
+            try
+            {
+                sqlQueryBuilder = new StringBuilder();
+                sqlQueryBuilder.Append("SELECT COUNT(*) as count FROM pricing_master ");
+                sqlQueryBuilder.Append("WHERE ProductID = @product_id AND effective_to IS NULL ");
+                sqlQueryBuilder.Append("AND pricing_id != @pricing_id");
+
+                objMySqlCommand = new MySqlCommand(sqlQueryBuilder.ToString());
+                objMySqlCommand.Parameters.AddWithValue("@product_id", productId);
+                objMySqlCommand.Parameters.AddWithValue("@pricing_id", currentPricingId);
+                dt = objUtility.GetDataTable(objMySqlCommand);
+
+                if (dt.Rows.Count > 0)
+                {
+                    int count = Convert.ToInt32(dt.Rows[0]["count"]);
+                    return count > 0;
+                }
+                return false;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public bool HasOverlappingPricing(int productId, DateTime fromDate, DateTime? toDate)
+        {
+            DataTable dt = new DataTable();
+            try
+            {
+                sqlQueryBuilder = new StringBuilder();
+                sqlQueryBuilder.Append("SELECT COUNT(*) as count FROM pricing_master ");
+                sqlQueryBuilder.Append("WHERE ProductID = @product_id AND (");
+
+                // Check for overlapping conditions:
+                // 1. New period starts during an existing period
+                // 2. New period ends during an existing period
+                // 3. New period completely contains an existing period
+                // 4. Existing period has no end date and new period starts before it ends
+
+                if (toDate.HasValue)
+                {
+                    // New period has an end date
+                    sqlQueryBuilder.Append("(@from_date >= effective_from AND (@to_date IS NULL OR @from_date < COALESCE(effective_to, '9999-12-31'))) OR ");
+                    sqlQueryBuilder.Append("(@to_date >= effective_from AND @to_date < COALESCE(effective_to, '9999-12-31')) OR ");
+                    sqlQueryBuilder.Append("(@from_date <= effective_from AND @to_date >= COALESCE(effective_to, '9999-12-31'))");
+                }
+                else
+                {
+                    // New period has no end date (open-ended)
+                    sqlQueryBuilder.Append("(effective_to IS NULL) OR ");
+                    sqlQueryBuilder.Append("(@from_date < COALESCE(effective_to, '9999-12-31'))");
+                }
+
+                sqlQueryBuilder.Append(")");
+
+                objMySqlCommand = new MySqlCommand(sqlQueryBuilder.ToString());
+                objMySqlCommand.Parameters.AddWithValue("@product_id", productId);
+                objMySqlCommand.Parameters.AddWithValue("@from_date", fromDate);
+                objMySqlCommand.Parameters.AddWithValue("@to_date", toDate.HasValue ? (object)toDate.Value : DBNull.Value);
+
+                dt = objUtility.GetDataTable(objMySqlCommand);
+
+                if (dt.Rows.Count > 0)
+                {
+                    int count = Convert.ToInt32(dt.Rows[0]["count"]);
+                    return count > 0;
+                }
+                return false;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public bool HasOverlappingPricingExcludingCurrent(int productId, int currentPricingId, DateTime fromDate, DateTime? toDate)
+        {
+            DataTable dt = new DataTable();
+            try
+            {
+                sqlQueryBuilder = new StringBuilder();
+                sqlQueryBuilder.Append("SELECT COUNT(*) as count FROM pricing_master ");
+                sqlQueryBuilder.Append("WHERE ProductID = @product_id AND pricing_id != @pricing_id AND (");
+
+                if (toDate.HasValue)
+                {
+                    sqlQueryBuilder.Append("(@from_date >= effective_from AND (@to_date IS NULL OR @from_date < COALESCE(effective_to, '9999-12-31'))) OR ");
+                    sqlQueryBuilder.Append("(@to_date >= effective_from AND @to_date < COALESCE(effective_to, '9999-12-31')) OR ");
+                    sqlQueryBuilder.Append("(@from_date <= effective_from AND @to_date >= COALESCE(effective_to, '9999-12-31'))");
+                }
+                else
+                {
+                    sqlQueryBuilder.Append("(effective_to IS NULL) OR ");
+                    sqlQueryBuilder.Append("(@from_date < COALESCE(effective_to, '9999-12-31'))");
+                }
+
+                sqlQueryBuilder.Append(")");
+
+                objMySqlCommand = new MySqlCommand(sqlQueryBuilder.ToString());
+                objMySqlCommand.Parameters.AddWithValue("@product_id", productId);
+                objMySqlCommand.Parameters.AddWithValue("@pricing_id", currentPricingId);
+                objMySqlCommand.Parameters.AddWithValue("@from_date", fromDate);
+                objMySqlCommand.Parameters.AddWithValue("@to_date", toDate.HasValue ? (object)toDate.Value : DBNull.Value);
+
+                dt = objUtility.GetDataTable(objMySqlCommand);
+
+                if (dt.Rows.Count > 0)
+                {
+                    int count = Convert.ToInt32(dt.Rows[0]["count"]);
+                    return count > 0;
+                }
+                return false;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         public int UpdatePricing(ClsPricingMaster objPricingMaster)
         {
             int rowsAffected = 0;
